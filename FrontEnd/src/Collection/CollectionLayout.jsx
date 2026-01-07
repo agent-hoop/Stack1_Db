@@ -4,9 +4,9 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { FolderIcon, Home, Search, SettingsIcon } from 'lucide-react'
 
 export default function CollectionLayout() {
-  const { pathname } = useLocation()
-  const navigate = useNavigate()
 
+  const navigate = useNavigate()
+  const {pathname} = useLocation()
   const [showNav, setShowNav] = useState(true)
   const lastScrollY = useRef(0)
 
@@ -28,7 +28,6 @@ export default function CollectionLayout() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const isCollections = pathname.startsWith('/collections')
 
   return (
     <div className="h-screen  flex flex-col">
@@ -38,13 +37,12 @@ export default function CollectionLayout() {
         <Outlet />
       </main>
 
-      {isCollections && (
         <BottomNav
           pathname={pathname}
           navigate={navigate}
           show={showNav}
         />
-      )}
+
     </div>
   )
 }

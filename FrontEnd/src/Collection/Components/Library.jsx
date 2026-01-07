@@ -16,6 +16,7 @@ const libraryData = [
     icon: BookIcon,
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
     textColor: "text-primary",
+    link: "/notes",
   },
   {
     id: 2,
@@ -24,6 +25,7 @@ const libraryData = [
     icon: Edit3Icon,
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
     textColor: "text-purple-600 dark:text-purple-400",
+    link: "/poem",
   },
   {
     id: 3,
@@ -32,6 +34,7 @@ const libraryData = [
     icon: BookOpenTextIcon,
     bgColor: "bg-orange-100 dark:bg-orange-900/30",
     textColor: "text-orange-600 dark:text-orange-400",
+    link: "/stories",
   },
   {
     id: 4,
@@ -40,11 +43,11 @@ const libraryData = [
     icon: ImagesIcon,
     bgColor: "bg-pink-100 dark:bg-pink-900/30",
     textColor: "text-pink-600 dark:text-pink-400",
+    link: "/media",
   },
 ];
 
 export default function Library() {
-  const navigate  = useNavigate()
   return (
     <div className="p-4 ">
       <section className="px-1">
@@ -61,13 +64,16 @@ export default function Library() {
   );
 }
 
-function Card({ icon: Icon, name, count, bgColor, textColor }) {
-  const navigate  = useNavigate()
-
+function Card({ icon: Icon, name, count, bgColor, textColor, link }) {
+  const navigate = useNavigate();
 
   return (
-    <div onClick={()=>{navigate('/collections/notes')} } className="group relative hover:scale-[1.01] active:scale-95 overflow-hidden bg-surface-light dark:bg-surface-dark rounded-xl p-4 flex flex-col gap-4 shadow-sm border border-slate-200 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer">
-
+    <div
+      onClick={() => {
+        navigate(`/collections${link}`);
+      }}
+      className="group relative hover:scale-[1.01] active:scale-95 overflow-hidden bg-surface-light dark:bg-surface-dark rounded-xl p-4 flex flex-col gap-4 shadow-sm border border-slate-200 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer"
+    >
       {/* Animated top border */}
       <span
         className={`
@@ -81,11 +87,13 @@ function Card({ icon: Icon, name, count, bgColor, textColor }) {
       />
 
       <div className="flex items-start justify-between">
-        <div className={`w-12 h-12 rounded-lg ${bgColor} flex items-center justify-center`}>
+        <div
+          className={`w-12 h-12 rounded-lg ${bgColor} flex items-center justify-center`}
+        >
           <Icon className={textColor} size={20} />
         </div>
 
-        <LucideMenu className="text-slate-400" size={18} />
+        {/* <LucideMenu className="text-slate-400" size={18} /> */}
       </div>
 
       <div>

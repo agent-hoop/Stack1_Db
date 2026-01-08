@@ -29,7 +29,7 @@ export default function Header() {
           </> : 
         <>
           <div className="left font-bold text-white text-2xl ">
-            {homePath[2] == 'novel' && 'Novel'}
+            {homePath[2] == 'stories' && 'Stories'}
             {homePath[2] === 'notes' && 'Notes'}
             {homePath[2] === 'poem' && 'Poems'}
             {homePath[2] === 'media' && 'My Media'}

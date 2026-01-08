@@ -4,12 +4,15 @@ import HomePage from "./Pages/HomePage";
 import AddPage from "./Pages/AddPage";
 import SearchPage from "./Pages/SearchPage";
 import ViewPage from "./Pages/ViewPage";
-// import CollectionLayout from "./CollectionLayout";
 import CollectionLayout from "./Collection/CollectionLayout";
-// import CollectionDetail from "./Pages/CollectionDetail"; 
 import CollectionHomePage from './Collection/Pages/CollectionHomePage'
 import NotesPage from "./Collection/Pages/NotesPage";
 import SingleNotePage from "./Collection/Pages/SingleNotePage";
+import PoemPage from "./Collection/Pages/PoemPage";
+import StoriePage from "./Collection/Pages/StoriePage";
+import MediaPage from "./Collection/Pages/MediaPage";
+
+
 
 const routes = createBrowserRouter([
   {
@@ -37,6 +40,18 @@ const routes = createBrowserRouter([
         path: "notes",
         element: <NotesPage />,
       },
+      {
+        path:'poem',
+        element:<PoemPage/>
+      },
+      {
+        path:'stories',
+        element:<StoriePage/>
+      },
+      {
+        path:'media',
+        element:<MediaPage/>
+      }
 
     ],
   },

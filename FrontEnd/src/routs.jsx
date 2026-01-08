@@ -9,6 +9,7 @@ import CollectionLayout from "./Collection/CollectionLayout";
 // import CollectionDetail from "./Pages/CollectionDetail"; 
 import CollectionHomePage from './Collection/Pages/CollectionHomePage'
 import NotesPage from "./Collection/Pages/NotesPage";
+import SingleNotePage from "./Collection/Pages/SingleNotePage";
 
 const routes = createBrowserRouter([
   {
@@ -31,10 +32,19 @@ const routes = createBrowserRouter([
     element: <CollectionLayout />,
     children: [
       { index: true, element: <CollectionHomePage /> },
-      { path: "/collections/notes", element: <NotesPage /> },
-      // { path: "favorites", element: <Favorites /> }
+
+      {
+        path: "notes",
+        element: <NotesPage />,
+      },
+
     ],
   },
+  {
+        path: "/collections/notes/view/:id",
+        element: <SingleNotePage />,
+      },
 ]);
+
 
 export default routes;

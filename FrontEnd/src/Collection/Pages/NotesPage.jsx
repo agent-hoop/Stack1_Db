@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { Navigate, useNavigate } from "react-router-dom";
 
 /* ---------------- DATA ---------------- */
 const NOTE_LIST = [
@@ -32,9 +33,15 @@ const NOTE_LIST = [
 
 /* ---------------- PAGE ---------------- */
 export default function NotesPage() {
+  const navigate = useNavigate()
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
+
+  function openNote(id) {
+    navigate(`/collections/notes/view/${id}`)
+    console.log(id)
+  }
   // simulate API
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 150);
@@ -50,7 +57,7 @@ export default function NotesPage() {
   }, [query]);
 
   return (
-    <div className="w-full p-5 space-y-6">
+    <div className="w-full p-2 space-y-6">
 
       {/* Search stays visible (UX rule) */}
       <div className="relative">
@@ -79,7 +86,7 @@ export default function NotesPage() {
           <p className="text-center text-white/50">No notes found</p>
         ) : (
           filteredNotes.map((note) => (
-            <NoteCard key={note.id} {...note} />
+            <NoteCard handleOpen={()=>openNote(note.id)}  key={note.id} {...note} />
           ))
         )}
       </div>
@@ -90,11 +97,11 @@ export default function NotesPage() {
 /* ---------------- CARD ---------------- */
 
 
-function NoteCard({ title, content, img, isLocked }) {
+function NoteCard({ title, content, img, isLocked, handleOpen }) {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
-    <div
+    <div onClick={handleOpen}
       className="group flex gap-4 p-4 rounded-2xl
       bg-[#1C2033]/90 border border-white/10
       hover:bg-[#23294a] hover:border-blue-500/40

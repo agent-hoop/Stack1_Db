@@ -4,10 +4,23 @@ import Entry from "../models/Entry.js";
 const router = express.Router();
 
 // GET all
-router.get("/", async (_, res) => {
-  const entries = await Entry.find().sort({ createdAt: -1 });
-  res.json(entries);
+// GET entries (filtered by category)
+router.get("/", async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const filter = category ? { category } : {};
+
+    const entries = await Entry
+      .find(filter)
+      .sort({ createdAt: -1 });
+
+    res.json(entries);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch entries" });
+  }
 });
+
 
 // CREATE
 router.post("/", async (req, res) => {
@@ -31,5 +44,11 @@ router.delete("/:id", async (req, res) => {
   await Entry.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });
+
+// Get Specific Data
+// Only Notes
+router.get('/notes',)
+
+
 
 export default router;

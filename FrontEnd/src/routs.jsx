@@ -11,6 +11,7 @@ import SingleNotePage from "./Collection/Pages/SingleNotePage";
 import PoemPage from "./Collection/Pages/PoemPage";
 import StoriePage from "./Collection/Pages/StoriePage";
 import MediaPage from "./Collection/Pages/MediaPage";
+import AdminEntry from "./AdminEntry";
 
 
 
@@ -23,6 +24,10 @@ const routes = createBrowserRouter([
       { path: "search/:query", element: <SearchPage /> },
       { path: "view/:id", element: <ViewPage /> },
     ],
+  },
+  {
+    path:'/admin',
+    element:<AdminEntry/>
   },
 
   {

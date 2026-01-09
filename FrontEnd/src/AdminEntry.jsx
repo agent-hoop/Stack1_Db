@@ -227,7 +227,7 @@ const handleDelete = async (id, e) => {
                 /* MEDIA GRID VIEW */
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {filteredEntries.map(entry => (
-                    <div key={entry.id} onClick={() => handleEdit(entry)} className="bg-[#0f1117] border border-white/5 rounded-3xl overflow-hidden group cursor-pointer hover:border-indigo-500/50 transition-all">
+                    <div key={entry._id} onClick={() => handleEdit(entry)} className="bg-[#0f1117] border border-white/5 rounded-3xl overflow-hidden group cursor-pointer hover:border-indigo-500/50 transition-all">
                       <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden">
                         {entry.mediaUrl ? (
                           <img src={entry.mediaUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
@@ -235,7 +235,7 @@ const handleDelete = async (id, e) => {
                           <ImageIcon size={32} className="text-slate-800" />
                         )}
                         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={(e) => handleDelete(entry.id, e)} className="p-2 bg-rose-500 text-white rounded-lg shadow-xl"><Trash2 size={14} /></button>
+                          <button onClick={(e) => handleDelete(entry._id, e)} className="p-2 bg-rose-500 text-white rounded-lg shadow-xl"><Trash2 size={14} /></button>
                         </div>
                       </div>
                       <div className="p-5">
@@ -271,7 +271,7 @@ const handleDelete = async (id, e) => {
                              <Badge variant={entry.status === 'Published' ? 'success' : 'warning'}>{entry.status}</Badge>
                           </td>
                           <td className="px-8 py-6 text-right">
-                             <button onClick={(e) => handleDelete(entry.id, e)} className="p-2 text-slate-600 hover:text-rose-400 transition-colors"><Trash2 size={18}/></button>
+                             <button onClick={(e) => handleDelete(entry._id, e)} className="p-2 text-slate-600 hover:text-rose-400 transition-colors"><Trash2 size={18}/></button>
                           </td>
                         </tr>
                       ))}

@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { Navigate, useNavigate } from "react-router-dom";
 
 /* ---------------- DATA ---------------- */
-const NOTE_LIST = [
+const data = [
   {
     id: "1",
     title: "New verse",
@@ -31,16 +31,31 @@ const NOTE_LIST = [
   },
 ];
 
+const API = "http://localhost:3000/api/entries?category=Notes";
 /* ---------------- PAGE ---------------- */
 export default function NotesPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
 
+  useEffect(() => {
+    async function getData() {
+      try {
+        const res = await fetch(API);
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Fetch failed:", err);
+      }
+    }
+
+    getData();
+  }, []);
 
   function openNote(id) {
-    navigate(`/collections/notes/view/${id}`)
-    console.log(id)
+    navigate(`/collections/notes/view/${id}`);
+    console.log(id);
   }
   // simulate API
   useEffect(() => {
@@ -49,16 +64,19 @@ export default function NotesPage() {
   }, []);
 
   const filteredNotes = useMemo(() => {
-    return NOTE_LIST.filter(
-      (n) =>
-        n.title.toLowerCase().includes(query.toLowerCase()) ||
-        n.content.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query]);
+    return data.filter((n) => {
+      const title = n.title?.toLowerCase() || "";
+      const content = n.content?.toLowerCase() || "";
+
+      return (
+        title.includes(query.toLowerCase()) ||
+        content.includes(query.toLowerCase())
+      );
+    });
+  }, [data, query]);
 
   return (
     <div className="w-full p-2 space-y-6">
-
       {/* Search stays visible (UX rule) */}
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
@@ -76,7 +94,6 @@ export default function NotesPage() {
 
       {/* LIST */}
       <div className="space-y-4">
-
         {/* REAL skeleton rendering */}
         {loading ? (
           Array.from({ length: filteredNotes.length }).map((_, i) => (
@@ -86,7 +103,11 @@ export default function NotesPage() {
           <p className="text-center text-white/50">No notes found</p>
         ) : (
           filteredNotes.map((note) => (
-            <NoteCard handleOpen={()=>openNote(note.id)}  key={note.id} {...note} />
+            <NoteCard
+              handleOpen={() => openNote(note._id)}
+              key={note.id}
+              {...note}
+            />
           ))
         )}
       </div>
@@ -96,12 +117,12 @@ export default function NotesPage() {
 
 /* ---------------- CARD ---------------- */
 
-
 function NoteCard({ title, content, img, isLocked, handleOpen }) {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
-    <div onClick={handleOpen}
+    <div
+      onClick={handleOpen}
       className="group flex gap-4 p-4 rounded-2xl
       bg-[#1C2033]/90 border border-white/10
       hover:bg-[#23294a] hover:border-blue-500/40
@@ -110,19 +131,19 @@ function NoteCard({ title, content, img, isLocked, handleOpen }) {
     >
       {/* IMAGE */}
       <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-black/20">
-
         {/* Skeleton */}
         {!imgLoaded && (
           <div className="absolute inset-0 skeleton-shimmer bg-black/20" />
         )}
-       
 
         <img
           src={img}
           alt={title}
           loading="lazy"
           decoding="async"
-          onLoad={() => {setImgLoaded(true);}}
+          onLoad={() => {
+            setImgLoaded(true);
+          }}
           className={`w-full h-full object-cover
             transition-opacity- duration-500 ease-out
             ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}
@@ -130,13 +151,17 @@ function NoteCard({ title, content, img, isLocked, handleOpen }) {
         />
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-linear-to-tr
+        <div
+          className="absolute inset-0 bg-linear-to-tr
           from-black/40 via-transparent to-transparent
-          opacity-60 group-hover:opacity-30 transition-opacity" />
+          opacity-60 group-hover:opacity-30 transition-opacity"
+        />
 
         {isLocked && (
-          <div className="absolute inset-0 backdrop-blur-sm bg-black/50
-          flex items-center justify-center">
+          <div
+            className="absolute inset-0 backdrop-blur-sm bg-black/50
+          flex items-center justify-center"
+          >
             🔒
           </div>
         )}
@@ -145,8 +170,10 @@ function NoteCard({ title, content, img, isLocked, handleOpen }) {
       {/* TEXT */}
       <div className="flex flex-col justify-center gap-1">
         <h3 className="text-lg font-semibold">{title}</h3>
-        <p className="text-sm text-white/60 line-clamp-2
-          group-hover:text-white/80 transition-colors">
+        <p
+          className="text-sm text-white/60 line-clamp-2
+          group-hover:text-white/80 transition-colors"
+        >
           {content}
         </p>
       </div>
@@ -154,13 +181,13 @@ function NoteCard({ title, content, img, isLocked, handleOpen }) {
   );
 }
 
-
 /* ---------------- SKELETON ---------------- */
 function NoteSkeleton() {
   return (
-    <div className="flex gap-4 p-4 rounded-2xl
-    bg-[#1C2033]/80 border border-white/10">
-
+    <div
+      className="flex gap-4 p-4 rounded-2xl
+    bg-[#1C2033]/80 border border-white/10"
+    >
       {/* image */}
       <div className="w-20 h-20 rounded-xl bg-white/10 skeleton-shimmer" />
 

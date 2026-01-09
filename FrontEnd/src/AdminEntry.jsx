@@ -262,7 +262,7 @@ const handleDelete = async (id, e) => {
                     </thead>
                     <tbody className="divide-y divide-white/[0.02]">
                       {filteredEntries.map(entry => (
-                        <tr key={entry.id} onClick={() => handleEdit(entry)} className="hover:bg-white/[0.01] transition-all cursor-pointer group">
+                        <tr key={entry._id} onClick={() => handleEdit(entry)} className="hover:bg-white/[0.01] transition-all cursor-pointer group">
                           <td className="px-8 py-6">
                             <div className="text-white font-serif text-xl font-bold group-hover:text-indigo-400 transition-colors">{entry.title || 'Untitled'}</div>
                           </td>

@@ -14,6 +14,8 @@ const EntrySchema = new mongoose.Schema(
       enum: ["Poems", "Stories", "Media", "Notes"],
       required: true,
     },
+    isLocked:{type:Boolean,default:false},
+    isGsn:{type:Boolean,default:false},
     status: { type: String, enum: ["Draft", "Published"], default: "Draft" },
     content: String,
     mediaType: String,

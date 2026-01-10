@@ -9,21 +9,27 @@ export default function SingleNotePage() {
   const { id } = useParams();
   const [noteData, setData] = useState(cachedNote ?? null);
 
-    function getNoteImgByAuthor(author = "") {
-  switch (author.toLowerCase()) {
-    case "love":
-      return "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg";
+const getNoteImgByAuthor = (author = "") => {
+  const map = {
+    love: "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg",
+    sad: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?q=80&w=1000&auto=format&fit=crop",
+  };
+  return (
+    map[author.toLowerCase()] ||
+    "https://images.unsplash.com/photo-1470252649358-96752a786133?q=80&w=1000&auto=format&fit=crop"
+  );
+};
 
-    case "sad":
-      return "https://lh3.googleusercontent.com/proxy/1wK08M0S23pBPrwGSobh8JSc2xAY5oeZjqLbvSspTE-WEXQQhFandGv6B_llGDyv4p0gneubWd9FHOGgHmp523Pt0Yx_VvodmSo4wP-hDwCIcoGLFBrJgd-GC2ge_Cwq1ZFKBU4dwxIvG2RP3OBnctv-5lnF6-jsXus";
 
-    default:
-      return "https://st2.depositphotos.com/2001755/8564/i/450/depositphotos_85647140-stock-photo-beautiful-landscape-with-birds.jpg";
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   }
-}
-
-
-
 
   const API = `http://localhost:3000/api/entries/${id}`;
 
@@ -93,29 +99,34 @@ export default function SingleNotePage() {
             </h1>
 
             <div className="flex gap-2 flex-wrap">
-              { noteData.tags.length !=0 &&
-
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 backdrop-blur text-zinc-100 border border-white/10">
-                {noteData.tags }
-              </span>
-              }
-              
+              {noteData.tags.length != 0 &&
+                noteData.tags.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 backdrop-blur text-zinc-100 border border-white/10"
+                  >
+                    {tag}
+                  </span>
+                ))}
             </div>
           </div>
         </div>
         {/* Content */}
         <article className="relative mt-6 rounded-2xl bg-white/3 backdrop-blur-xl border border-white/5 px-3 py-6 shadow-lg shadow-black/30">
           <div className="mb-4 text-xs tracking-wide text-zinc-400">
-            Oct 30 ·
+            {formatDate(noteData.updatedAt)}
           </div>
 
           <div
-  className="prose prose-invert max-w-none"
-  dangerouslySetInnerHTML={{ __html: noteData.content }}
-/>
-
+            className="
+    prose prose-invert max-w-none
+    prose-h1:text-4xl prose-h1:font-bold prose-h1:leading-tight
+    prose-h2:text-3xl prose-h2:font-semibold
+    prose-h3:text-2xl prose-h3:font-semibold
+  "
+            dangerouslySetInnerHTML={{ __html: noteData.content }}
+          />
         </article>
-        
       </main>
     </div>
   );

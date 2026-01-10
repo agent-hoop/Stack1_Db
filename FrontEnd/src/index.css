@@ -45,3 +45,20 @@
   animation: shimmer 1.3s infinite;
 }
 
+.prose h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.prose h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}

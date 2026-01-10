@@ -1,127 +1,126 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Lock, FileText, ChevronRight, Search, CloudOff } from "lucide-react";
 
-/* ---------------- DATA ---------------- */
+/* ---------------- GLOBAL STATE (Outside Component) ---------------- */
+let notesCache = null;
+let activePromise = null; // Used to deduplicate overlapping requests
 
 const API = "http://localhost:3000/api/entries?category=Notes";
-/* ---------------- PAGE ---------------- */
+
+/* ---------------- UTILS ---------------- */
+const getNoteImgByAuthor = (author = "") => {
+  const map = {
+    love: "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg",
+    sad: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?q=50&w=1000&auto=format&fit=crop",
+  };
+  return map[author.toLowerCase()] || "https://images.unsplash.com/photo-1470252649358-96752a786133?q=80&w=1000&auto=format&fit=crop";
+};
+
+const getPlainText = (html = "") => {
+  return new DOMParser().parseFromString(html, "text/html").body.textContent || "";
+};
+
+/* ---------------- MAIN COMPONENT ---------------- */
 export default function NotesPage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
-
-  function getNoteImgByAuthor(author = "") {
-  switch (author.toLowerCase()) {
-    case "love":
-      return "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg";
-
-    case "sad":
-      return "https://lh3.googleusercontent.com/proxy/1wK08M0S23pBPrwGSobh8JSc2xAY5oeZjqLbvSspTE-WEXQQhFandGv6B_llGDyv4p0gneubWd9FHOGgHmp523Pt0Yx_VvodmSo4wP-hDwCIcoGLFBrJgd-GC2ge_Cwq1ZFKBU4dwxIvG2RP3OBnctv-5lnF6-jsXus";
-
-    default:
-      return "https://st2.depositphotos.com/2001755/8564/i/450/depositphotos_85647140-stock-photo-beautiful-landscape-with-birds.jpg";
-  }
-}
-
-
-
-  function preloadImages(urls = []) {
-  return Promise.all(
-    urls.map(
-      (src) =>
-        new Promise((resolve) => {
-          const img = new Image();
-          img.src = src;
-          img.onload = resolve;
-          img.onerror = resolve;
-        })
-    )
-  );
-}
-
+  const [data, setData] = useState(notesCache || []);
+  const [loading, setLoading] = useState(!notesCache);
 
   useEffect(() => {
-  async function getData() {
-    try {
-      setLoading(true);
-      const res = await fetch(API);
-      const json = await res.json();
+    const controller = new AbortController();
 
-      // preload images
-      const imageUrls = json.map((note) =>
-        getNoteImgByAuthor(note.author)
-      );
+    async function fetchNotes() {
+      // 1. If we already have a request in flight, just wait for it
+      if (activePromise) {
+        try {
+          const json = await activePromise;
+          setData(json);
+          return;
+        } catch (e) {
+          // If the shared promise failed, we continue to try a new fetch
+        }
+      }
 
-      await preloadImages(imageUrls);
+      // 2. Start a new request if no promise is active
+      try {
+        if (!notesCache) setLoading(true);
 
-      setData(json);
-    } catch (err) {
-      console.error("Fetch failed:", err);
-    } finally {
-      setLoading(false);
+        activePromise = fetch(API, { signal: controller.signal }).then((res) => {
+          if (!res.ok) throw new Error("Network Error");
+          return res.json();
+        });
+
+        const json = await activePromise;
+        
+        notesCache = json;
+        setData(json);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Fetch failed:", err);
+        }
+      } finally {
+        activePromise = null; // Clear the shared promise
+        setLoading(false);
+      }
     }
-  }
 
-  getData();
-}, []);
+    fetchNotes();
 
+    return () => {
+      // We only abort if the cache is still empty to prevent 
+      // interrupting the "background refresh" for existing users
+      if (!notesCache) controller.abort();
+    };
+  }, []);
 
-  function openNote(note) {
-    navigate(`/collections/notes/view/${note._id}`, {
-  state: { note }
-});
-
-  }
+  /* ---------------- SEARCH LOGIC ---------------- */
+  const searchableData = useMemo(() => {
+    return data.map((n) => ({
+      ...n,
+      __search: `${n.title || ""} ${getPlainText(n.content)}`.toLowerCase(),
+    }));
+  }, [data]);
 
   const filteredNotes = useMemo(() => {
-    return data.filter((n) => {
-      const title = n.title?.toLowerCase() || "";
-      const content = n.content?.toLowerCase() || "";
+    const q = query.toLowerCase().trim();
+    if (!q) return searchableData;
+    return searchableData.filter((n) => n.__search.includes(q));
+  }, [searchableData, query]);
 
-      return (
-        title.includes(query.toLowerCase()) ||
-        content.includes(query.toLowerCase())
-      );
-    });
-  }, [data, query]);
+  const openNote = (note) => {
+    navigate(`/collections/notes/view/${note._id}`, { state: { note } });
+  };
 
   return (
-    <div className="w-full p-2 space-y-6">
-      {/* Search stays visible (UX rule) */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search your thoughts..."
-          className="w-full h-14 pl-12 pr-4 rounded-2xl 
-          bg-[#1C2033] border border-white/10
-          text-white placeholder:text-white/40
-          focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30
-          outline-none transition-all"
-        />
+    <div className="max-w-4xl mx-auto w-full p-6 space-y-8 animate-in fade-in duration-500">
+      {/* HEADER */}
+      <div className="space-y-4">
+        <h1 className="text-4xl font-black italic text-white tracking-tight">My Notes</h1>
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-blue-500 transition-colors" size={20} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search your thoughts..."
+            className="w-full h-16 pl-12 pr-5 rounded-2xl bg-[#15192d] border border-white/5 text-white placeholder:text-white/40 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/40 outline-none transition-all"
+          />
+        </div>
       </div>
 
       {/* LIST */}
-      <div className="space-y-4">
-        {/* REAL skeleton rendering */}
-        {loading ? (
-          Array.from({ length: filteredNotes.length }).map((_, i) => (
-            <NoteSkeleton key={i} />
-          ))
+      <div className="grid gap-4">
+        {loading && data.length === 0 ? (
+          Array.from({ length: 5 }).map((_, i) => <NoteSkeleton key={i} />)
         ) : filteredNotes.length === 0 ? (
-          <p className="text-center text-white/50">No notes found</p>
+          <div className="py-20 flex flex-col items-center text-white/20 gap-4">
+            <CloudOff size={48} strokeWidth={1} />
+            <p className="font-medium">No thoughts found matching that criteria</p>
+          </div>
         ) : (
-          filteredNotes.map((note, i) => (
-            <NoteCard
-              img={getNoteImgByAuthor(note.author)}
-
-              handleOpen={() => openNote(note)}
-              key={note._id}
-              {...note}
-            />
+          filteredNotes.map((note) => (
+            <NoteCard key={note._id} note={note} onOpen={() => openNote(note)} />
           ))
         )}
       </div>
@@ -129,87 +128,67 @@ export default function NotesPage() {
   );
 }
 
-/* ---------------- CARD ---------------- */
+/* ---------------- SUB-COMPONENTS ---------------- */
 
-function NoteCard({ title, content, img, isLocked, handleOpen }) {
+function NoteCard({ note, onOpen }) {
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { title, content, author, isLocked } = note;
+
+  const img = useMemo(() => getNoteImgByAuthor(author), [author]);
+  const preview = useMemo(() => getPlainText(content), [content]);
 
   return (
     <div
-      onClick={handleOpen}
-      className="group flex gap-4 p-4 rounded-2xl
-      bg-[#1C2033]/90 border border-white/10
-      hover:bg-[#23294a] hover:border-blue-500/40
-      transition-all duration-200 cursor-pointer
-      will-change-transform"
+      onClick={onOpen}
+      className="group flex flex-col sm:flex-row gap-6 p-5 rounded-[2rem] bg-[#15192d]/40 border border-white/10 backdrop-blur-md hover:bg-[#1c2033] hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
     >
-      {/* IMAGE */}
-      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-black/20">
-        {/* Skeleton */}
+      <div className="relative w-full sm:w-28 h-44 sm:h-28 rounded-2xl overflow-hidden bg-black/40 shrink-0 border border-white/5">
         {!imgLoaded && (
-          <div className="absolute inset-0 skeleton-shimmer bg-black/20" />
+          <div className="absolute inset-0 animate-pulse bg-white/5 flex items-center justify-center">
+            <FileText className="text-white/10" size={24} />
+          </div>
         )}
-
         <img
           src={img}
           alt={title}
-          loading="eager"
-          decoding="sync"
-          onLoad={() => {
-            setImgLoaded(true);
-          }}
-          className={`w-full h-full object-cover
-            transition-opacity- duration-500 ease-out
-            ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}
-            group-hover:scale-110`}
+          onLoad={() => setImgLoaded(true)}
+          className={`w-full h-full object-cover transition-all duration-700 ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-110"}`}
         />
-
-        {/* Overlay */}
-        <div
-          className="absolute inset-0 bg-linear-to-tr
-          from-black/40 via-transparent to-transparent
-          opacity-50 group-hover:opacity-30 transition-opacity"
-        />
-
         {isLocked && (
-          <div
-            className="absolute inset-0 backdrop-blur-sm bg-black/50
-          flex items-center justify-center"
-          >
-            🔒
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <Lock className="text-amber-400" size={18} />
           </div>
         )}
       </div>
 
-      {/* TEXT */}
-      <div className="flex flex-col justify-center gap-1">
-        <h3 className="text-lg font-semibold">{title}</h3>
-        <p
-          className="text-sm text-white/60 line-clamp-2
-          group-hover:text-white/80 transition-colors"
-        >
-          {content}
+      <div className="flex flex-col justify-center flex-1 min-w-0 pr-2">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-xl font-bold text-white truncate group-hover:text-blue-400 transition-colors">
+            {title || "Untitled Entry"}
+          </h3>
+          <ChevronRight className="text-white/10 group-hover:text-white/50 transition-all group-hover:translate-x-1" size={20} />
+        </div>
+        <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed italic mb-4">
+          {preview || "No content provided..."}
         </p>
+        <div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2.5 py-1 rounded-lg border border-blue-400/20">
+            {author || "personal"}
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ---------------- SKELETON ---------------- */
 function NoteSkeleton() {
   return (
-    <div
-      className="flex gap-4 p-4 rounded-2xl
-    bg-[#1C2033]/80 border border-white/10"
-    >
-      {/* image */}
-      <div className="w-20 h-20 rounded-xl bg-white/10 skeleton-shimmer" />
-
-      {/* text */}
-      <div className="flex flex-col gap-3 flex-1">
-        <div className="h-4 w-1/3 rounded bg-white/10 skeleton-shimmer" />
-        <div className="h-3 w-full rounded bg-white/10 skeleton-shimmer" />
-        <div className="h-3 w-2/3 rounded bg-white/10 skeleton-shimmer" />
+    <div className="flex gap-6 p-5 rounded-[2rem] bg-[#15192d]/20 border border-white/5">
+      <div className="w-28 h-28 rounded-2xl bg-white/5 animate-pulse shrink-0" />
+      <div className="flex flex-col justify-center flex-1 space-y-3">
+        <div className="h-5 w-1/3 bg-white/10 rounded-full animate-pulse" />
+        <div className="h-3 w-full bg-white/5 rounded-full animate-pulse" />
+        <div className="h-3 w-2/3 bg-white/5 rounded-full animate-pulse" />
       </div>
     </div>
   );

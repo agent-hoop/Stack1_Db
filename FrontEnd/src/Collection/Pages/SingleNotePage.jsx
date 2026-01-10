@@ -93,7 +93,7 @@ export default function SingleNotePage() {
             </h1>
 
             <div className="flex gap-2 flex-wrap">
-              { noteData.tags.length !=0
+              { noteData.tags.length !=0 &&
 
               <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 backdrop-blur text-zinc-100 border border-white/10">
                 {noteData.tags }
@@ -104,7 +104,7 @@ export default function SingleNotePage() {
           </div>
         </div>
         {/* Content */}
-        <article className="relative mt-6 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/5 px-3 py-6 shadow-lg shadow-black/30">
+        <article className="relative mt-6 rounded-2xl bg-white/3 backdrop-blur-xl border border-white/5 px-3 py-6 shadow-lg shadow-black/30">
           <div className="mb-4 text-xs tracking-wide text-zinc-400">
             Oct 30 ·
           </div>

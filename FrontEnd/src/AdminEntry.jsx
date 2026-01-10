@@ -6,9 +6,10 @@ import {
   Image as ImageIcon, Video, Music, Link as LinkIcon,
   Globe, Zap, Type, Hash, Bell, Calendar, MoreVertical
 } from 'lucide-react';
+import Editor from './Compoents/Editor';
 
 // --- CONSTANTS & DEFAULTS ---
-const CATEGORIES = ['Dashboard', 'Poems', 'Stories', 'Media', 'Novels'];
+const CATEGORIES = ['Dashboard', 'Poems', 'Stories', 'Media', 'Notes'];
 
 const INITIAL_FORM_STATE = {
   id: null,
@@ -20,7 +21,8 @@ const INITIAL_FORM_STATE = {
   mediaType: 'image',
   mediaUrl: '',
   publishDate: new Date().toISOString().split('T')[0],
-  views: 0
+  views: 0,
+  tags:[]
 };
 
 // --- STYLED UI COMPONENTS ---
@@ -46,6 +48,8 @@ export default function AdminEntry() {
 // 1. GLOBAL STATE (MongoDB is source of truth)
 const [entries, setEntries] = useState([]);
 const [loading, setLoading] = useState(true);
+const [tagInput, setTagInput] = useState('');
+
 
 // API
 const API = "http://localhost:3000/api/entries";
@@ -98,6 +102,32 @@ useEffect(() => {
     setIsPreviewOpen(false);
     setView('editor');
   };
+
+
+  // Add tags
+  const addTag = () => {
+  const value = tagInput.trim().toLowerCase();
+  if (!value) return;
+
+  if (formData.tags.includes(value)) {
+    setTagInput('');
+    return;
+  }
+
+  setFormData(prev => ({
+    ...prev,
+    tags: [...prev.tags, value],
+  }));
+
+  setTagInput('');
+};
+
+const removeTag = (tag) => {
+  setFormData(prev => ({
+    ...prev,
+    tags: prev.tags.filter(t => t !== tag),
+  }));
+};
 
   const handleSave = async () => {
   if (!formData.title.trim()) {
@@ -166,7 +196,7 @@ const handleDelete = async (id, e) => {
             {cat === 'Poems' && <PenTool size={18} />}
             {cat === 'Stories' && <Book size={18} />}
             {cat === 'Media' && <Film size={18} />}
-            {cat === 'Novels' && <Library size={18} />}
+            {cat === 'Notes' && <Library size={18} />}
             <span className="font-bold text-sm">{cat}</span>
           </button>
         ))}
@@ -320,6 +350,49 @@ const handleDelete = async (id, e) => {
                     </div>
                   </div>
 
+                  {/* TAGS */}
+<div className="mb-12">
+  <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 block">
+    Tags
+  </label>
+
+  <div className="flex flex-wrap gap-2 mb-3">
+    {formData.tags.map(tag => (
+      <span
+        key={tag}
+        className="flex items-center gap-1 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest border border-indigo-500/20"
+      >
+        #{tag}
+        <button
+          onClick={() => removeTag(tag)}
+          className="hover:text-rose-400 transition"
+        >
+          <X size={12} />
+        </button>
+      </span>
+    ))}
+  </div>
+
+  <input
+    value={tagInput}
+    onChange={e => setTagInput(e.target.value)}
+    onKeyDown={e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addTag();
+      }
+    }}
+    placeholder="Type tag and press Enter"
+    className="
+      w-full bg-white/5 border border-white/5 rounded-xl
+      px-4 py-2 text-xs outline-none
+      focus:ring-1 ring-indigo-500/40
+      placeholder:text-slate-600
+    "
+  />
+</div>
+
+
                   {/* Schema Selection: Media vs Text */}
                   {formData.category === 'Media' ? (
                     <div className="space-y-10 animate-in fade-in">
@@ -342,12 +415,11 @@ const handleDelete = async (id, e) => {
                        </div>
                     </div>
                   ) : (
-                    <textarea 
-                      className="w-full flex-1 bg-transparent text-2xl font-serif text-slate-300 leading-relaxed outline-none resize-none whitespace-pre-wrap border-none focus:ring-0 p-0 mb-40 min-h-[600px]"
-                      placeholder="Start writing..."    
-                      value={formData.content}
-                      onChange={e => setFormData({...formData, content: e.target.value})}
-                    />
+                    <Editor
+  content={formData.content}
+  setContent={(html) => setFormData({ ...formData, content: html })}
+/>
+
                   )}
                 </div>
 

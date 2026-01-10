@@ -3,33 +3,6 @@ import { Search } from "lucide-react";
 import { Navigate, useNavigate } from "react-router-dom";
 
 /* ---------------- DATA ---------------- */
-const data = [
-  {
-    id: "1",
-    title: "New verse",
-    content: "Some line so deep, it cut through the wound",
-    img: "https://img.freepik.com/free-photo/raging-river-nature_422131-102.jpg",
-  },
-  {
-    id: "2",
-    title: "Some Thought",
-    content: "Beauty of the place",
-    img: "https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg",
-  },
-  {
-    id: "3",
-    title: "Gajal",
-    content: "Gajal main",
-    img: "https://static.vecteezy.com/system/resources/thumbnails/049/855/296/small/nature-background-high-resolution-wallpaper-for-a-serene-and-stunning-view-photo.jpg",
-  },
-  {
-    id: "4",
-    title: "Some word harder to write",
-    content: "Be the best",
-    img: "https://dxcmodels.com/wp-content/uploads/2024/03/black-model44.jpg",
-    isLocked: true,
-  },
-];
 
 const API = "http://localhost:3000/api/entries?category=Notes";
 /* ---------------- PAGE ---------------- */
@@ -39,29 +12,68 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
 
-  useEffect(() => {
-    async function getData() {
-      try {
-        const res = await fetch(API);
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        console.error("Fetch failed:", err);
-      }
-    }
+  function getNoteImgByAuthor(author = "") {
+  switch (author.toLowerCase()) {
+    case "love":
+      return "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg";
 
-    getData();
-  }, []);
+    case "sad":
+      return "https://lh3.googleusercontent.com/proxy/1wK08M0S23pBPrwGSobh8JSc2xAY5oeZjqLbvSspTE-WEXQQhFandGv6B_llGDyv4p0gneubWd9FHOGgHmp523Pt0Yx_VvodmSo4wP-hDwCIcoGLFBrJgd-GC2ge_Cwq1ZFKBU4dwxIvG2RP3OBnctv-5lnF6-jsXus";
 
-  function openNote(id) {
-    navigate(`/collections/notes/view/${id}`);
-    console.log(id);
+    default:
+      return "https://st2.depositphotos.com/2001755/8564/i/450/depositphotos_85647140-stock-photo-beautiful-landscape-with-birds.jpg";
   }
-  // simulate API
+}
+
+
+
+  function preloadImages(urls = []) {
+  return Promise.all(
+    urls.map(
+      (src) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.src = src;
+          img.onload = resolve;
+          img.onerror = resolve;
+        })
+    )
+  );
+}
+
+
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 150);
-    return () => clearTimeout(t);
-  }, []);
+  async function getData() {
+    try {
+      setLoading(true);
+      const res = await fetch(API);
+      const json = await res.json();
+
+      // preload images
+      const imageUrls = json.map((note) =>
+        getNoteImgByAuthor(note.author)
+      );
+
+      await preloadImages(imageUrls);
+
+      setData(json);
+    } catch (err) {
+      console.error("Fetch failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  getData();
+}, []);
+
+
+  function openNote(note) {
+    navigate(`/collections/notes/view/${note._id}`, {
+  state: { note }
+});
+
+  }
 
   const filteredNotes = useMemo(() => {
     return data.filter((n) => {
@@ -102,10 +114,12 @@ export default function NotesPage() {
         ) : filteredNotes.length === 0 ? (
           <p className="text-center text-white/50">No notes found</p>
         ) : (
-          filteredNotes.map((note) => (
+          filteredNotes.map((note, i) => (
             <NoteCard
-              handleOpen={() => openNote(note._id)}
-              key={note.id}
+              img={getNoteImgByAuthor(note.author)}
+
+              handleOpen={() => openNote(note)}
+              key={note._id}
               {...note}
             />
           ))
@@ -139,8 +153,8 @@ function NoteCard({ title, content, img, isLocked, handleOpen }) {
         <img
           src={img}
           alt={title}
-          loading="lazy"
-          decoding="async"
+          loading="eager"
+          decoding="sync"
           onLoad={() => {
             setImgLoaded(true);
           }}
@@ -154,7 +168,7 @@ function NoteCard({ title, content, img, isLocked, handleOpen }) {
         <div
           className="absolute inset-0 bg-linear-to-tr
           from-black/40 via-transparent to-transparent
-          opacity-60 group-hover:opacity-30 transition-opacity"
+          opacity-50 group-hover:opacity-30 transition-opacity"
         />
 
         {isLocked && (

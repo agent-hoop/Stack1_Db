@@ -4,9 +4,14 @@ const EntrySchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     author: String,
+    tags: {
+      type: [String],
+      default: [],
+      index: true,
+    },
     category: {
       type: String,
-      enum: ["Poems", "Stories", "Media", "Novels"],
+      enum: ["Poems", "Stories", "Media", "Notes"],
       required: true,
     },
     status: { type: String, enum: ["Draft", "Published"], default: "Draft" },

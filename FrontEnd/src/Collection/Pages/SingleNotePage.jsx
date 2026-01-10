@@ -1,9 +1,75 @@
 import { ArrowLeftIcon } from "lucide-react";
-import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import NoteSkeleton from "../Components/NoteSkeleton";
 
-export default function SingleNotePage({tags,bgImg,content,title,time}) {
+export default function SingleNotePage() {
+  const location = useLocation();
+  const cachedNote = location.state?.note;
   const { id } = useParams();
+  const [noteData, setData] = useState(cachedNote ?? null);
+
+    function getNoteImgByAuthor(author = "") {
+  switch (author.toLowerCase()) {
+    case "love":
+      return "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg";
+
+    case "sad":
+      return "https://lh3.googleusercontent.com/proxy/1wK08M0S23pBPrwGSobh8JSc2xAY5oeZjqLbvSspTE-WEXQQhFandGv6B_llGDyv4p0gneubWd9FHOGgHmp523Pt0Yx_VvodmSo4wP-hDwCIcoGLFBrJgd-GC2ge_Cwq1ZFKBU4dwxIvG2RP3OBnctv-5lnF6-jsXus";
+
+    default:
+      return "https://st2.depositphotos.com/2001755/8564/i/450/depositphotos_85647140-stock-photo-beautiful-landscape-with-birds.jpg";
+  }
+}
+
+
+
+
+  const API = `http://localhost:3000/api/entries/${id}`;
+
+  useEffect(() => {
+    if (cachedNote) return; // already have data
+
+    const controller = new AbortController();
+
+    async function getNote() {
+      try {
+        const res = await fetch(API, {
+          signal: controller.signal,
+        });
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error(err);
+        }
+      }
+    }
+
+    getNote();
+
+    return () => controller.abort();
+  }, [id]);
+
+  // useEffect(()=>{
+  //   async function getNote(){
+  //     try{
+  //       const data = await fetch(API)
+  //       const response = await data.json();
+  //       setData(response)
+  //       console.log(response)
+  //     }
+
+  //   catch(err){
+  //     console.log(err)
+
+  //   }}
+  //   getNote()
+  // },[])
+
+  if (!noteData) {
+    return <NoteSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -13,52 +79,43 @@ export default function SingleNotePage({tags,bgImg,content,title,time}) {
         {/* Image Header */}
         <div className="relative mt-3 h-60 w-full overflow-hidden rounded-2xl shadow-lg shadow-black/40">
           <img
-            src="https://img.freepik.com/free-photo/galaxy-wallpaper-warm-colors_23-2151769491.jpg?semt=ais_hybrid&w=740&q=90"
-            alt=""
+            src={getNoteImgByAuthor(noteData.author)}
             className="h-full w-full object-cover scale-[1.03]"
           />
 
           {/* Cinematic fade */}
-          <div className="absolute inset-0 bg-linear-to-b from-black/20 via-black/40 to-black/90" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/60 to-black/90" />
 
           {/* Title & tags */}
           <div className="absolute bottom-5 left-5 right-5 space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-white drop-shadow-lg">
-              Aja ko prem, kasai ko dayn
+              {noteData?.title}
             </h1>
 
             <div className="flex gap-2 flex-wrap">
+              { noteData.tags.length !=0
+
               <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 backdrop-blur text-zinc-100 border border-white/10">
-                Home
+                {noteData.tags }
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 backdrop-blur text-zinc-100 border border-white/10">
-                Love
-              </span>
+              }
+              
             </div>
           </div>
         </div>
-
         {/* Content */}
         <article className="relative mt-6 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/5 px-3 py-6 shadow-lg shadow-black/30">
           <div className="mb-4 text-xs tracking-wide text-zinc-400">
-            Oct 30 · 
+            Oct 30 ·
           </div>
 
-          <div className="prose prose-invert prose-zinc max-w-none font-sans">
-            <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim
-              quibusdam consequuntur quasi ratione. Similique exercitationem
-              voluptatem aut, quisquam dolorem, rerum eaque placeat nam ut quia
-              excepturi labore autem ratione reiciendis.
-            </p>
+          <div
+  className="prose prose-invert max-w-none"
+  dangerouslySetInnerHTML={{ __html: noteData.content }}
+/>
 
-            <p>
-              Consequuntur maxime sapiente, dolorem quo adipisci blanditiis
-              ducimus explicabo minima? Explicabo dolorem maiores delectus
-              voluptatibus beatae impedit vitae quasi neque.
-            </p>
-          </div>
         </article>
+        
       </main>
     </div>
   );

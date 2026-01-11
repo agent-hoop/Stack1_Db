@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, FileText, ChevronRight, Search, CloudOff } from "lucide-react";
+import { Lock, FileText, ChevronRight, Search, CloudOff, X, CheckCheck } from "lucide-react";
 
-/* ---------------- GLOBAL STATE (Outside Component) ---------------- */
+/* ---------------- GLOBAL STATE ---------------- */
 let notesCache = null;
-let activePromise = null; // Used to deduplicate overlapping requests
+let activePromise = null;
 
 const API = "http://localhost:3000/api/entries?category=Notes";
 
@@ -14,7 +14,7 @@ const getNoteImgByAuthor = (author = "") => {
     love: "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg",
     sad: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?q=50&w=1000&auto=format&fit=crop",
   };
-  return map[author.toLowerCase()] || "https://images.unsplash.com/photo-1470252649358-96752a786133?q=80&w=1000&auto=format&fit=crop";
+  return map[author.toLowerCase()] || "https://images.pexels.com/photos/762527/pexels-photo-762527.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500";
 };
 
 const getPlainText = (html = "") => {
@@ -23,27 +23,27 @@ const getPlainText = (html = "") => {
 
 /* ---------------- MAIN COMPONENT ---------------- */
 export default function NotesPage() {
+  const [lockedNote, setLockedNote] = useState(null);
+  const [gsnNote, setGsnNote] = useState(null); // separate state for "isGsn"
+
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [data, setData] = useState(notesCache || []);
   const [loading, setLoading] = useState(!notesCache);
 
+  /* ---------------- FETCH NOTES ---------------- */
   useEffect(() => {
     const controller = new AbortController();
 
     async function fetchNotes() {
-      // 1. If we already have a request in flight, just wait for it
       if (activePromise) {
         try {
           const json = await activePromise;
           setData(json);
           return;
-        } catch (e) {
-          // If the shared promise failed, we continue to try a new fetch
-        }
+        } catch (e) { /* ignore */ }
       }
 
-      // 2. Start a new request if no promise is active
       try {
         if (!notesCache) setLoading(true);
 
@@ -53,15 +53,12 @@ export default function NotesPage() {
         });
 
         const json = await activePromise;
-        
         notesCache = json;
         setData(json);
       } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Fetch failed:", err);
-        }
+        if (err.name !== "AbortError") console.error("Fetch failed:", err);
       } finally {
-        activePromise = null; // Clear the shared promise
+        activePromise = null;
         setLoading(false);
       }
     }
@@ -69,13 +66,11 @@ export default function NotesPage() {
     fetchNotes();
 
     return () => {
-      // We only abort if the cache is still empty to prevent 
-      // interrupting the "background refresh" for existing users
       if (!notesCache) controller.abort();
     };
   }, []);
 
-  /* ---------------- SEARCH LOGIC ---------------- */
+  /* ---------------- SEARCH ---------------- */
   const searchableData = useMemo(() => {
     return data.map((n) => ({
       ...n,
@@ -89,15 +84,50 @@ export default function NotesPage() {
     return searchableData.filter((n) => n.__search.includes(q));
   }, [searchableData, query]);
 
+  /* ---------------- OPEN NOTE ---------------- */
   const openNote = (note) => {
+    if (note.isLocked) {
+      setLockedNote(note);
+      return;
+    }
+    if (note.isGsn) {
+      setGsnNote(note);
+      return;
+    }
     navigate(`/collections/notes/view/${note._id}`, { state: { note } });
   };
 
   return (
     <div className="max-w-4xl mx-auto w-full p-6 space-y-8 animate-in fade-in duration-500">
-      {/* HEADER */}
+
+      {/* ---------------- MODALS ---------------- */}
+      {lockedNote && (
+        <LockScreenModal
+          note={lockedNote}
+          onClose={() => setLockedNote(null)}
+          onValidate={(password) => {
+            if (password === "1") { // your password logic
+              navigate(`/collections/notes/view/${lockedNote._id}`, { state: { note: lockedNote } });
+              setLockedNote(null);
+              return true;
+            }
+            return false;
+          }}
+        />
+      )}
+
+      {gsnNote && (
+        <SecretModal
+          onNo={() => setGsnNote(null)}
+          onYes={() => {
+            navigate(`/collections/notes/view/${gsnNote._id}`, { state: { note: gsnNote } });
+            setGsnNote(null);
+          }}
+        />
+      )}
+
+      {/* ---------------- HEADER ---------------- */}
       <div className="space-y-4">
-        <h1 className="text-4xl font-black italic text-white tracking-tight">My Notes</h1>
         <div className="relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-blue-500 transition-colors" size={20} />
           <input
@@ -109,27 +139,26 @@ export default function NotesPage() {
         </div>
       </div>
 
-      {/* LIST */}
+      {/* ---------------- NOTES LIST ---------------- */}
       <div className="grid gap-4">
-        {loading && data.length === 0 ? (
-          Array.from({ length: 5 }).map((_, i) => <NoteSkeleton key={i} />)
-        ) : filteredNotes.length === 0 ? (
-          <div className="py-20 flex flex-col items-center text-white/20 gap-4">
-            <CloudOff size={48} strokeWidth={1} />
-            <p className="font-medium">No thoughts found matching that criteria</p>
-          </div>
-        ) : (
-          filteredNotes.map((note) => (
+        {loading && data.length === 0
+          ? Array.from({ length: 5 }).map((_, i) => <NoteSkeleton key={i} />)
+          : filteredNotes.length === 0
+          ? (
+            <div className="py-20 flex flex-col items-center text-white/20 gap-4">
+              <CloudOff size={48} strokeWidth={1} />
+              <p className="font-medium">No thoughts found matching that criteria</p>
+            </div>
+          )
+          : filteredNotes.map((note) => (
             <NoteCard key={note._id} note={note} onOpen={() => openNote(note)} />
-          ))
-        )}
+          ))}
       </div>
     </div>
   );
 }
 
-/* ---------------- SUB-COMPONENTS ---------------- */
-
+/* ---------------- NOTE CARD ---------------- */
 function NoteCard({ note, onOpen }) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const { title, content, author, isLocked } = note;
@@ -181,6 +210,7 @@ function NoteCard({ note, onOpen }) {
   );
 }
 
+/* ---------------- SKELETON ---------------- */
 function NoteSkeleton() {
   return (
     <div className="flex gap-6 p-5 rounded-[2rem] bg-[#15192d]/20 border border-white/5">
@@ -189,6 +219,67 @@ function NoteSkeleton() {
         <div className="h-5 w-1/3 bg-white/10 rounded-full animate-pulse" />
         <div className="h-3 w-full bg-white/5 rounded-full animate-pulse" />
         <div className="h-3 w-2/3 bg-white/5 rounded-full animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- LOCK SCREEN MODAL ---------------- */
+function LockScreenModal({ note, onClose, onValidate }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleValidate = () => {
+    if (!password) return setError("Enter password!");
+    const success = onValidate(password);
+    if (!success) {
+      setError("Incorrect password.");
+    } else {
+      setError("");
+      setPassword("");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-[#0c0e12]/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-in scale-in duration-300">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Locked Note</h2>
+          <button onClick={onClose} className="text-white/50 hover:text-white transition-colors"><X size={24} /></button>
+        </div>
+
+        <p className="text-white/60 mb-4">This note is locked. Enter the password to access it.</p>
+
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter password"
+          className="w-full px-4 py-3 rounded-xl bg-[#15192d] border border-white/10 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-2"
+        />
+
+        {error && <p className="text-red-400 text-sm mb-2">{error}</p>}
+
+        <div className="flex justify-end gap-3 mt-4">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl border border-white/20 text-white/60 hover:text-white hover:bg-white/5 transition-all">Close</button>
+          <button onClick={handleValidate} className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2 transition-all"><CheckCheck size={16} /> Validate</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- SECRET MODAL ---------------- */
+function SecretModal({ onYes, onNo }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-[#0c0e12]/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-[90%] max-w-sm animate-in scale-in duration-300">
+        <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">This entry content Sensetive things</h2>
+        <p className="text-white/60 mb-6">Do you like to read my secret</p>
+        <div className="flex justify-end gap-3">
+          <button onClick={onNo} className="px-4 py-2 rounded-xl border border-white/20 text-white/60 hover:text-white hover:bg-white/5 transition-all">No</button>
+          <button onClick={onYes} className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white transition-all">View</button>
+        </div>
       </div>
     </div>
   );

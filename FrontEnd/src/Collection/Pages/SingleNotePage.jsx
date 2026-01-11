@@ -16,7 +16,7 @@ const getNoteImgByAuthor = (author = "") => {
   };
   return (
     map[author.toLowerCase()] ||
-    "https://images.unsplash.com/photo-1470252649358-96752a786133?q=80&w=1000&auto=format&fit=crop"
+    "https://images.pexels.com/photos/762527/pexels-photo-762527.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"
   );
 };
 

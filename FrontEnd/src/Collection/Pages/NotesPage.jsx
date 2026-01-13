@@ -41,7 +41,7 @@ export default function NotesPage() {
           const json = await activePromise;
           setData(json);
           return;
-        } catch (e) { /* ignore */ }
+        } catch (e) { /* ignore */ console.log(e)}
       }
 
       try {
@@ -169,7 +169,7 @@ function NoteCard({ note, onOpen }) {
   return (
     <div
       onClick={onOpen}
-      className="group flex flex-col sm:flex-row gap-6 p-5 rounded-[2rem] bg-[#15192d]/40 border border-white/10 backdrop-blur-md hover:bg-[#1c2033] hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
+      className="group flex flex-col sm:flex-row gap-6 p-5 rounded-4xl bg-[#15192d]/40 border border-white/10 backdrop-blur-md hover:bg-[#1c2033] hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
     >
       <div className="relative w-full sm:w-28 h-44 sm:h-28 rounded-2xl overflow-hidden bg-black/40 shrink-0 border border-white/5">
         {!imgLoaded && (
@@ -213,7 +213,7 @@ function NoteCard({ note, onOpen }) {
 /* ---------------- SKELETON ---------------- */
 function NoteSkeleton() {
   return (
-    <div className="flex gap-6 p-5 rounded-[2rem] bg-[#15192d]/20 border border-white/5">
+    <div className="flex gap-6 p-5 rounded-4xl bg-[#15192d]/20 border border-white/5">
       <div className="w-28 h-28 rounded-2xl bg-white/5 animate-pulse shrink-0" />
       <div className="flex flex-col justify-center flex-1 space-y-3">
         <div className="h-5 w-1/3 bg-white/10 rounded-full animate-pulse" />
@@ -274,8 +274,11 @@ function SecretModal({ onYes, onNo }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-[#0c0e12]/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-[90%] max-w-sm animate-in scale-in duration-300">
-        <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">This entry content Sensetive things</h2>
-        <p className="text-white/60 mb-6">Do you like to read my secret</p>
+      <div className="logo">
+        
+      </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-red-500 text-center mb-4">This entry content Sensetive things</h2>
+        <p className="text-white/60 mb-6  ">Do you like to read my secret</p>
         <div className="flex justify-end gap-3">
           <button onClick={onNo} className="px-4 py-2 rounded-xl border border-white/20 text-white/60 hover:text-white hover:bg-white/5 transition-all">No</button>
           <button onClick={onYes} className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white transition-all">View</button>

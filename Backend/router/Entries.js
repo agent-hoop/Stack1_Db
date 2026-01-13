@@ -1,9 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 import Entry from "../models/Entry.js";
+import { globalSearch } from "../Controller/globalSearch.js";
 
 const router = express.Router();
-
 /**
  * GET ALL ENTRIES
  * /api/entries?category=Notes
@@ -11,10 +11,8 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const { category } = req.query;
-
     const filter = {};
     if (category) filter.category = category;
-
     const entries = await Entry.find(filter).sort({ createdAt: -1 });
 
     res.json(entries);
@@ -29,6 +27,7 @@ router.get("/", async (req, res) => {
  * /api/entries/:id
  * optional: ?category=Notes
  */
+
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -119,5 +118,8 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete entry" });
   }
 });
+
+// Get the count part of the document
+router.get('/search',globalSearch)
 
 export default router;

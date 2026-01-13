@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
 import HomePage from "./Pages/HomePage";
 import AddPage from "./Pages/AddPage";
-import SearchPage from "./Pages/SearchPage";
+import SearchPage from "./Collection/Pages/SearchPage";
 import ViewPage from "./Pages/ViewPage";
 import CollectionLayout from "./Collection/CollectionLayout";
 import CollectionHomePage from './Collection/Pages/CollectionHomePage'
@@ -56,6 +56,10 @@ const routes = createBrowserRouter([
       {
         path:'media',
         element:<MediaPage/>
+      },
+      {
+        path:'search',
+        element:<SearchPage/>
       }
 
     ],

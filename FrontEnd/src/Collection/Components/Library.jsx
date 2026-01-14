@@ -98,7 +98,7 @@ function Card({ icon: Icon, name, count, bgColor, textColor, link }) {
   return (
     <div
       onClick={() => {
-        navigate(`/collections${link}`);
+        navigate(`${link}`);
       }}
       className="group relative hover:scale-[1.01] active:scale-95 overflow-hidden bg-surface-light dark:bg-surface-dark rounded-xl p-4 flex flex-col gap-4 shadow-sm border border-slate-200 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer"
     >

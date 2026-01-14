@@ -48,10 +48,10 @@ export default function CollectionLayout() {
 }
 function BottomNav({ pathname, navigate, show }) {
   const items = [
-    { label: 'Home', icon: Home, path: '/collections' },
-    { label: 'Search', icon: Search, path: '/collections/search' },
-    { label: 'Library', icon: FolderIcon, path: '/collections/library' },
-    { label: 'Settings', icon: SettingsIcon, path: '/collections/settings' },
+    { label: 'Home', icon: Home, path: '' },
+    { label: 'Search', icon: Search, path: '/search' },
+    { label: 'Library', icon: FolderIcon, path: '/library' },
+    { label: 'Settings', icon: SettingsIcon, path: '/settings' },
   ]
 
   return (

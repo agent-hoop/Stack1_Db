@@ -5,8 +5,6 @@ import dotenv from 'dotenv';
 import Notes from './router/Notes.js'
 import Entries from './router/Entries.js'
 import Search from './router/Search.js'
-
-
 import cors from 'cors'
 import countDocs from './Controller/countDocs.js';
 dotenv.config()

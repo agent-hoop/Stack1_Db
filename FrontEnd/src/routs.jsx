@@ -17,7 +17,7 @@ import AdminEntry from "./AdminEntry";
 
 const routes = createBrowserRouter([
   {
-    path: "/",
+    path: "/main",
     element: <App />,
     children: [
       { index: true, element: <HomePage /> },
@@ -36,7 +36,7 @@ const routes = createBrowserRouter([
   },
 
   {
-    path: "/collections",
+    path: "/",
     element: <CollectionLayout />,
     children: [
       { index: true, element: <CollectionHomePage /> },
@@ -65,7 +65,7 @@ const routes = createBrowserRouter([
     ],
   },
   {
-        path: "/collections/notes/view/:id",
+        path: "/notes/view/:id",
         element: <SingleNotePage />,
       },
 ]);

@@ -16,7 +16,16 @@ export default function PoemPage() {
   const { data, loading, error } = useApi(
     "http://localhost:3000/api/entries","Poems"
   );
-  if (loading) return <NoteSkeleton />;
+  if(loading) return(
+    <>
+      {[1,2].map((q,i)=>{
+        return(
+         <PoemCardSkeleton key={i} />
+
+        )
+      })}
+    </>
+  )
   return (
     <div className="min-h-screen  p-6">
       <div className="mx-auto max-w-md flex flex-col gap-6">
@@ -103,3 +112,52 @@ export function PoemCard({
   );
 }
 
+export function PoemCardSkeleton({ noImage = false }) {
+  const hasImage = !noImage;
+
+  return (
+    <article
+      className={`relative md:w-3xl flex ml-auto mr-auto flex-col overflow-hidden rounded-2xl mt-6 ring-1 ring-white/10
+      animate-pulse
+      ${
+        hasImage
+          ? "bg-zinc-900"
+          : "bg-gradient-to-br from-zinc-800/60 to-zinc-900"
+      }`}
+    >
+      {/* IMAGE SKELETON */}
+      {hasImage && (
+        <div className="relative h-52 m w-full bg-zinc-800">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        </div>
+      )}
+
+      {/* CONTENT */}
+      <div
+        className={`relative flex flex-col gap-4 ${
+          hasImage ? "-mt-12 px-5 pb-5 pt-3" : "p-6"
+        }`}
+      >
+        {/* TAGS */}
+        <div className="flex gap-2">
+          <span className="h-5 w-14 rounded-md bg-white/10" />
+          <span className="h-5 w-10 rounded-md bg-white/10" />
+          <span className="h-5 w-12 rounded-md bg-white/10" />
+        </div>
+
+        {/* TITLE */}
+        <div>
+          <div className="h-5 w-3/4 rounded bg-white/15 mb-2" />
+          <div className="h-3 w-1/3 rounded bg-white/10" />
+        </div>
+
+        {/* QUOTE */}
+        <div className="space-y-2">
+          <div className="h-3 w-full rounded bg-white/10" />
+          <div className="h-3 w-11/12 rounded bg-white/10" />
+          <div className="h-3 w-4/5 rounded bg-white/10" />
+        </div>
+      </div>
+    </article>
+  );
+}

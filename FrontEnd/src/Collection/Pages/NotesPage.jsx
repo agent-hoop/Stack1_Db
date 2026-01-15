@@ -6,7 +6,7 @@ import { Lock, FileText, ChevronRight, Search, CloudOff, X, CheckCheck } from "l
 let notesCache = null;
 let activePromise = null;
 
-const API = "http://localhost:3000/api/entries?category=Notes";
+const API = "http://localhost:3000/api/entries?category=Notes" || import.meta.env.VITE_API_URL;
 
 /* ---------------- UTILS ---------------- */
 const getNoteImgByAuthor = (author = "") => {

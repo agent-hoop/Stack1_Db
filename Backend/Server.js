@@ -12,6 +12,11 @@ dotenv.config()
 const app =  express()
 app.use(cors({origin:true}))
 app.use(express.json())
+app.use(cors({
+  origin: "http://localhost:5173" || process.env.URL ,
+  credentials: true,
+}));
+
 ConnDb();
 // Routes
 app.use('/api/notes',Notes)

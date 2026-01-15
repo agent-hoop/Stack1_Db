@@ -1,25 +1,34 @@
-import React,{useState} from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from "react";
 
-export default function useApi(api,cat='') {
-    const [data, setData] = useState([])
-    const [loading,setLoading] = useState(true)
-    const [error, setError] = useState([])
+export default function useApi(api, cat = "", count = false) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(()=>{
-        async function getData() {
-            try{
-                const data = await fetch(`${api}?category=${cat}`);
-                const res = await data.json();
-                setData(res);
-            }
-            catch(err){
-                setError({error:err})
-            }finally{
-                setLoading(false)
-            }
-        }
-        getData()
-    },[])
-  return {data,error,loading}
+  useEffect(() => {
+    let alive = true;
+    async function getData() {
+      try {
+        setLoading(true);
+
+        const url = count
+          ? `${api}/count`
+          : `${api}?category=${encodeURIComponent(cat)}`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Request failed");
+
+        const json = await res.json();
+        if (alive) setData(json);
+      } catch (err) {
+        if (alive) setError(err.message);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    }
+    getData();
+    return () => (alive = false);
+  }, [api, cat, count]);
+
+  return { data, loading, error };
 }

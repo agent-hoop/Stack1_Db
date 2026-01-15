@@ -12,7 +12,7 @@ import { useEffect } from "react";
 import { useMemo } from "react";
 
 
-const URL = 'http://localhost:3000/count'
+const URL = 'http://localhost:3000/count'  || `${import.meta.env.VITE_API_URL }/count`
 export default function Library() {
 
   const [data, setData] = useState([])
@@ -22,7 +22,6 @@ export default function Library() {
     return acc;
   }, {});
 }, [data]);
-console.log(counts)
   const libraryData = [
   {
     id: 1,

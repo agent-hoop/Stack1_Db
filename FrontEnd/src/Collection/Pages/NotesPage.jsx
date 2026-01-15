@@ -6,7 +6,7 @@ import { Lock, FileText, ChevronRight, Search, CloudOff, X, CheckCheck } from "l
 let notesCache = null;
 let activePromise = null;
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3000/api/entries?category=Notes" ;
+const API = import.meta.env.VITE_API_URL || "http://localhost:3000" ;
 
 /* ---------------- UTILS ---------------- */
 const getNoteImgByAuthor = (author = "") => {
@@ -47,7 +47,7 @@ export default function NotesPage() {
       try {
         if (!notesCache) setLoading(true);
 
-        activePromise = fetch(API, { signal: controller.signal }).then((res) => {
+        activePromise = fetch(`${API}/api/entries?category=Notes`, { signal: controller.signal }).then((res) => {
           if (!res.ok) throw new Error("Network Error");
           return res.json();
         });
@@ -94,7 +94,7 @@ export default function NotesPage() {
       setGsnNote(note);
       return;
     }
-    navigate(`/collections/notes/view/${note._id}`, { state: { note } });
+    navigate(`/notes/view/${note._id}`, { state: { note } });
   };
 
   return (
@@ -107,7 +107,7 @@ export default function NotesPage() {
           onClose={() => setLockedNote(null)}
           onValidate={(password) => {
             if (password === "1") { // your password logic
-              navigate(`/collections/notes/view/${lockedNote._id}`, { state: { note: lockedNote } });
+              navigate(`/notes/view/${lockedNote._id}`, { state: { note: lockedNote } });
               setLockedNote(null);
               return true;
             }
@@ -120,7 +120,7 @@ export default function NotesPage() {
         <SecretModal
           onNo={() => setGsnNote(null)}
           onYes={() => {
-            navigate(`/collections/notes/view/${gsnNote._id}`, { state: { note: gsnNote } });
+            navigate(`/notes/view/${gsnNote._id}`, { state: { note: gsnNote } });
             setGsnNote(null);
           }}
         />

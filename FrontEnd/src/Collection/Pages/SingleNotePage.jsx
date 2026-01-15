@@ -31,7 +31,7 @@ const getNoteImgByAuthor = (author = "") => {
     });
   }
 
-  const API = `http://localhost:3000/api/entries/${id}`;
+  const API = `${import.meta.env.VITE_API_URL}/api/entries/${id}` || `http://localhost:3000/api/entries/${id}` ;
 
   useEffect(() => {
     if (cachedNote) return; // already have data

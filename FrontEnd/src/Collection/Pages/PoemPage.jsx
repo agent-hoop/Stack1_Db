@@ -1,19 +1,33 @@
-import React, { useState } from "react";
-import NoteSkeleton from "../Components/NoteSkeleton";
+
 import useApi from "../useApi";
 
+
+const SAD = ['https://media.istockphoto.com/id/1163040190/photo/sad-young-man-on-a-street.jpg?s=612x612&w=0&k=20&c=8lzfJmbw1Fc1QGe-E9leyvXVrE8dl8nK5VcIAXPTGVA=','https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTAyL3Jhd3BpeGVsX29mZmljZV8yNF9ibGFja19hbmRfd2hpdGVfYWVzdGhldGljX3Bob3RvZ3JhcGh5X29mX3dpbl8yMjkyMmY4ZS1mM2QyLTQ4MDUtYTM1NC02YzllY2ZlODI3OWJfMS5qcGc.jpg','https://wallpapers.com/images/thumbnail/dark-sad-girl-and-flower-xvyd0665h3lkxrev.webp','https://i.pinimg.com/170x/c2/77/38/c2773840602f4b064205c3f1a469db24.jpg']
+
+const API = `${import.meta.env.VITE_API_URL}/api/entries`
 const getNoteImgByAuthor = (author = "") => {
   const map = {
-    love: "https://i.pinimg.com/originals/8f/1e/f5/8f1ef52504a2bcf2e30357f8da90f3f2.jpg",
+    love: SAD[Math.floor(Math.random()*SAD.length())],
     sad: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?q=50&w=1000&auto=format&fit=crop",
   };
   return (
     map[author.toLowerCase()] ||
-    ""
+    "https://media.istockphoto.com/id/610041376/photo/beautiful-sunrise-over-the-sea.jpg?s=612x612&w=0&k=20&c=R3Tcc6HKc1ixPrBc7qXvXFCicm8jLMMlT99MfmchLNA= "
   );
 };
+
+ function formatDate(dateString) {
+    const date = new Date(dateString);
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
 export default function PoemPage() {
-  const { data, loading, error } = useApi(
+  const { data, loading, error } = useApi( API || 
     "http://localhost:3000/api/entries","Poems"
   );
   if(loading) return(
@@ -33,7 +47,7 @@ export default function PoemPage() {
         {data.length && data?.map((res)=>{
           return(
             <>
-              <PoemCard key={res._id} imageUrl={getNoteImgByAuthor(res.author)} meta={'This is a best'} quote={'Sometime , There are hallenge in the life'} title={'This is a title'}  tags={['1','2']}  />
+              <PoemCard key={res._id} imageUrl={getNoteImgByAuthor(res.author)} dTime={res.updatedAt} content={res.content}  tags={res.tags}  />
             </>
           )
         })}
@@ -45,8 +59,8 @@ export default function PoemPage() {
 export function PoemCard({
   imageUrl,
   title,
-  meta,
-  quote,
+  dTime,
+  content,
   tags = [],
   noImage = false,
 }) {
@@ -99,14 +113,14 @@ export function PoemCard({
             {title}
           </h2>
           <p className="text-xs text-gray-400 uppercase tracking-wide">
-            {meta}
+            {formatDate(dTime)}
           </p>
         </div>
 
-        {/* Quote */}
-        <p className="border-l-2 border-blue-500/40 pl-4 italic text-zinc-300 leading-relaxed line-clamp-3">
-          {quote}
-        </p>
+        {/* content */}
+        <p dangerouslySetInnerHTML={{ __html: content }}
+ className="border-l-2 border-blue-500/40 pl-4 italic text-zinc-300 leading-relaxed line-clamp-2"/>
+       
       </div>
     </article>
   );
@@ -151,7 +165,7 @@ export function PoemCardSkeleton({ noImage = false }) {
           <div className="h-3 w-1/3 rounded bg-white/10" />
         </div>
 
-        {/* QUOTE */}
+        {/* content */}
         <div className="space-y-2">
           <div className="h-3 w-full rounded bg-white/10" />
           <div className="h-3 w-11/12 rounded bg-white/10" />

@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /* ---------------- CONFIG ---------------- */
 // NOTE: Ensure your backend is running, or this will return fetch errors.
-const API = "http://localhost:3000/api/search"; 
+const API = "http://localhost:3000" || import.meta.env.VITE_API_URL ; 
 const RECENT_KEY = "premium-search-recent";
 
 const CATEGORY_META = {
@@ -132,7 +132,7 @@ export default function SearchPage() {
       setLoading(true);
       setShowDropdown(true);
       try {
-        const res = await fetch(`${API}?q=${encodeURIComponent(deferredQuery)}`, {
+        const res = await fetch(`${API}/api/search?q=${encodeURIComponent(deferredQuery)}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("API Error");
@@ -174,7 +174,7 @@ export default function SearchPage() {
     
     // Navigate based on item data
     if (item?.category && item?.id) {
-      navigate(`/collections/${item.category.toLowerCase()}/view/${item.id}`);
+      navigate(`/${item.category.toLowerCase()}/view/${item.id}`);
     }
   };
 
